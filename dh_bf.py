@@ -23,14 +23,14 @@ def find_primitive_root(prime):
     return None  # Return None if no primitive root is found.
 
 
-# Perform the Diffie-Hellman key exchange setup.
+# Alice creates 'a'.
 def diffie_hellman_key_exchange(p, g):
     a = random.randint(1, p - 1)  # Select a private key a randomly.
     A = pow(g, a, p)  # Calculate public key A as g^a mod p.
     return a, A
 
 
-# Brute force to find the private key given a public key.
+# Charlie's brute force attempt to figure out 'a'.
 def brute_force_dh(p, g, A):
     k = 1
     start_time = time.perf_counter_ns()  # Start timing.
@@ -40,14 +40,23 @@ def brute_force_dh(p, g, A):
     return k, end_time - start_time  # Return the discovered key and time taken.
 
 
-# Main loop to test keys of various sizes.
-for bits in range(10, 33, 2):
-    p = generate_prime(bits)  # Generate prime of size 'bits'.
-    g = find_primitive_root(p)  # Find a primitive root for prime p.
-    if g is None:
-        print(f"No primitive root found for prime of {bits} bits: {p}")
-        continue
-    a, A = diffie_hellman_key_exchange(p, g)  # Perform key exchange.
-    _, time_taken = brute_force_dh(p, g, A)  # Attempt to break DH exchange.
-    print(f"{bits}-bit prime: {p}, Primitive root: {g}")
-    print(f"DH public key: {A}, Time taken for brute force: {time_taken} nanoseconds")
+# Loop through specified bit sizes and perform tests.
+for bits in range(10, 31, 5):
+    total_time = 0
+    valid_trials = 0
+    for trial in range(10):
+        p = generate_prime(bits)
+        g = find_primitive_root(p)
+        if g is None:
+            continue  # Skip if no primitive root is found.
+        _, A = diffie_hellman_key_exchange(p, g)
+        _, time_taken_ns = brute_force_dh(p, g, A)
+        total_time += time_taken_ns
+        valid_trials += 1
+
+    if valid_trials > 0:
+        average_time_ns = total_time / valid_trials
+        print(
+            f"{bits}-bit prime, Average time taken for brute force over {valid_trials} trials: {average_time_ns:,.0f} nanoseconds")
+    else:
+        print(f"No valid trials for {bits}-bit primes due to lack of primitive roots.")
