@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np  # Import numpy for more control over mathematical functions
+
 
 # Create a DataFrame with the data
 data = {
